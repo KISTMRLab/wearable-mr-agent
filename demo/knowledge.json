@@ -1,0 +1,7 @@
+{
+  "objects": {
+    "person": {"overview": "A person is in view. This example has no personal facts.", "topics": {"privacy": "Only the current frame is processed locally by this demo."}, "emotion": "neutral"},
+    "chair": {"overview": "A chair supports a seated person.", "topics": {"use": "A chair provides a seat."}, "emotion": "joy"},
+    "flower": {"overview": "This is a procedural flower label for the interaction example, not an image detection.", "topics": {"care": "Care depends on the flower species; this example does not identify one."}, "emotion": "joy"}
+  }
+}

@@ -60,7 +60,19 @@ This standalone repository reimplements the core loop from **“Design of Seamle
 
 The original implementation and its assets are held by the institute. This is a new educational implementation built from the paper. It includes real object detection, gaze selection, the four-second dwell state machine, grounded object conversation, coordinated behavior events, and a portable anchor abstraction. It does not include the original Unity project, HoloLens application, flower dataset, knowledge base, cloud services, characters, animations, or trained weights, and it does not reproduce the paper's latency measurements.
 
-### Setup
+### Immediate browser demo
+
+```powershell
+py -3.11 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e .
+python scripts/prepare_viewer.py
+python -m wearable_mr.demo
+```
+
+Open `http://127.0.0.1:8761`. The first interaction uses an authored procedural object; image detection needs the optional YOLO setup below.
+
+### Detailed setup and checks
 
 Python 3.10 or newer is required. From this folder:
 
@@ -74,11 +86,11 @@ pytest -q
 
 Ultralytics downloads a named public checkpoint on first use. To avoid downloads, pass a local checkpoint. No model is bundled here.
 
-### Synthetic quickstart
+### Procedural verification
 
-Run `python scripts/smoke.py` after installation. It feeds a contract-valid procedural detection through the real gaze selector and four-second dwell state machine, then resolves a curator-authored object query into speech, expression, gesture, and viseme events. Inspect `outputs/smoke/response.json` and the annotated frame. For real use, replace the procedural `Detection` list with `YoloDetector.detect(frame)` output and replace the inline knowledge mapping with `DomainKnowledge.load("knowledge.json")`; the downstream interaction contract stays the same.
+Run `python scripts/verify.py` after installation. It feeds a contract-valid procedural detection through the real gaze selector and four-second dwell state machine, then resolves a curator-authored object query into speech, expression, gesture, and viseme events. Inspect `outputs/verify/response.json` and the annotated frame. For real use, replace the procedural `Detection` list with `YoloDetector.detect(frame)` output and replace the inline knowledge mapping with `DomainKnowledge.load("knowledge.json")`; the downstream interaction contract stays the same.
 
-If the optional `yolo` dependency is installed, `python scripts/smoke.py --with-yolo` additionally initializes YOLO11n from its bundled architecture configuration with random weights and sends the synthetic frame through `YoloDetector`. This checks the adapter and dependency boundary without downloading pretrained weights; random detections have no semantic meaning.
+If the optional `yolo` dependency is installed, `python scripts/verify.py --with-yolo` additionally initializes YOLO11n from its bundled architecture configuration with random weights and sends the synthetic frame through `YoloDetector`. This checks the adapter and dependency boundary without downloading pretrained weights; random detections have no semantic meaning.
 
 ### Knowledge contract
 
@@ -130,3 +142,13 @@ The first command initializes a detector from scratch; using `model=yolo11n.pt` 
 - `AnchorProvider` separates application logic from device spatial APIs. `JsonAnchorProvider` only proves room-scoped save/load semantics; an OpenXR/ARCore adapter must supply real transforms and room localization.
 
 This scope is intentional: it preserves the paper's modular contribution while avoiding a false claim that JSON transforms recreate native HoloLens spatial anchors or that a desktop camera is a wearable MR system.
+
+### Local browser interaction
+
+After setup, run `python scripts/prepare_viewer.py` once to fetch a pinned Three.js module into ignored `static/vendor/`. Then run `python -m wearable_mr.demo` and open `http://127.0.0.1:8761`. The procedural box is an authored interaction example. For actual image or webcam inference, install `.[yolo]` and start with `python -m wearable_mr.demo --weights yolo11n.pt`; public weights may download on first use. The browser shows YOLO boxes, pointer-selected target, four-second continuous dwell, a knowledge-grounded answer, and synchronized speech/expression/gesture events. Edit `demo/knowledge.json` to match your model classes. Browser speech uses the local browser speech engine. No model or original avatar is bundled.
+
+Run `python scripts/verify.py` and `pytest -q` for the procedural contract and state tests. The generated outputs are under ignored `outputs/verify/`. This integration is an independently authored portable example, not the institute's Unity/HoloLens runtime.
+
+### Optional local speech
+
+Browser speech is selected by default. To enable the **Local Kokoro** selector and audio transcription, install `python -m pip install -e ".[speech]"`. Prepare model files yourself outside this repository: set `KOKORO_MODEL_DIR` to a folder containing `config.json`, `kokoro-v1_0.pth`, and `voices/af_heart.pt` from [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M). Follow the [Kokoro phonemizer setup](https://github.com/hexgrad/kokoro), including espeak-ng where needed. Set `WHISPER_MODEL_DIR` to a locally prepared faster-whisper small model directory containing `model.bin`. For example, in PowerShell, `$env:KOKORO_MODEL_DIR='C:\path\to\kokoro'` and `$env:WHISPER_MODEL_DIR='C:\path\to\whisper-small'` before launching the demo. The server checks those paths and returns actionable errors when absent; it does not download weights. Record or upload audio to fill the question field, then ask after dwell reaches listening.

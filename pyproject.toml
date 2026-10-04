@@ -11,6 +11,7 @@ dependencies = ["numpy>=1.26,<3", "opencv-python>=4.9,<5"]
 
 [project.optional-dependencies]
 yolo = ["ultralytics>=8.3,<9"]
+speech = ["kokoro>=0.9,<1", "soundfile>=0.12,<1", "faster-whisper>=1.1,<2"]
 dev = ["pytest>=8,<9"]
 
 [project.scripts]
@@ -18,4 +19,3 @@ wearable-mr-agent = "wearable_mr.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

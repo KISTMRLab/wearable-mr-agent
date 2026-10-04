@@ -10,3 +10,4 @@ anchors.json
 *.egg-info/
 build/
 dist/
+static/vendor/

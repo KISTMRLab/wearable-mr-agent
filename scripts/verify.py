@@ -29,7 +29,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--with-yolo", action="store_true", help="also initialize and run the optional Ultralytics adapter")
     args = parser.parse_args()
-    output = Path("outputs/smoke").resolve(); output.mkdir(parents=True, exist_ok=True)
+    output = Path("outputs/verify").resolve(); output.mkdir(parents=True, exist_ok=True)
     frame = np.full((110, 130, 3), 245, np.uint8)
     detections = [Detection("flower", .91, BoundingBox(20, 15, 100, 95), "demo-1")]
     selected = select_detection(detections, 60, 55)
@@ -51,7 +51,7 @@ def main():
     (output / "response.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
     if args.with_yolo:
         check_yolo(output, frame)
-    print(f"smoke passed: target={selected.label}; response and annotated frame -> {output}")
+    print(f"verification passed: target={selected.label}; response and annotated frame -> {output}")
 
 
 if __name__ == "__main__":
