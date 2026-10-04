@@ -1,0 +1,41 @@
+Generated with built-in image_gen. Final prompt:
+
+Use case: scientific-educational.
+Asset: highly polished scientific system architecture figure for a research GitHub README. Create a gorgeous, rigorous diagram of the wearable mixed-reality virtual-agent framework, grounded in the CASA 2019 paper. Wide landscape high-resolution composition. White / very pale cool background, dark navy typography, elegant teal and indigo module accents, small restrained amber highlights. Exquisitely aligned vector-like geometry, very crisp readable text, generous whitespace, precise slender connectors. Premium academic visual design, sophisticated and memorable. Scientific technical glyphs only: tiny camera, microphone, gaze crosshair, database and skeletal avatar. NO decorative website illustration, photoreal humans, scenic environment, cartoon people, neon, glossy 3D cards, erotic content, invented measurements, Microsoft branding or logos.
+
+Main title exactly "Wearable MR Agent"
+Subtitle exactly "Seamless multimodal interaction for intelligent virtual agents"
+
+Main architecture occupies upper two-thirds and reads left to right through three softly delineated regions.
+Region 01 "Wearable inputs":
+Three vertically stacked inputs:
+"Camera frames" with tiny bounded-box object glyph;
+"Gaze" with crosshair glyph;
+"Speech" with minimal waveform glyph.
+Region 02 "Modular interaction":
+Camera frames arrow goes to "Vision manager" then "Object recognition" then "Object context".
+Gaze arrow goes to "Interaction controller" (subtitle "Gaze activation + turn-taking").
+Speech arrow goes to "Speech recognition" then "Query".
+Object context and Query each feed a single central module "Domain chatbot" with its small database labeled "Domain knowledge".
+Interaction controller sends a control connector labeled "Activate listening" into Speech recognition.
+Domain chatbot returns a structured response capsule labeled exactly "Reply + sentiment class + level".
+Region 03 "Coordinated agent behavior":
+Structured response arrow feeds "Behavior coordinator".
+Behavior coordinator fans out into FOUR neatly aligned parallel channels, never shown as sequential:
+"Speech" subtitle "Text-to-speech";
+"Expression" subtitle "Sentiment → face";
+"Gesture" subtitle "Phrase → animation";
+"Lip sync" subtitle "Phoneme → viseme".
+All four converge into one output "Virtual agent", accompanied by a SMALL sophisticated wireframe upper-body humanoid technical glyph and audio wave. Treat it as a technical diagram symbol, not decorative character artwork.
+Precise readable arrows, no ambiguous bypasses. Camera object context and spoken query must BOTH reach chatbot. Speech is activated by interaction controller. Sentiment affects expression; phoneme mapping affects lips; phrase mapping affects body gestures. All channels run in parallel.
+
+Below main architecture, an independent narrow architectural lane with header "Spatial anchoring":
+"Room scan" → "Spatial map" → "Anchor placement" → "Room-specific anchor store" → "Agent placement".
+Use room-grid glyph and database cylinder. Do NOT connect anchors to speech/chatbot; anchoring controls placement.
+Below or alongside it, a compact interaction sequence under heading "Engagement loop":
+"Gaze dwell · 4 s" → "Listen" → "Query" → "Respond".
+A clean thin return arrow from Respond to Listen. Small accompanying note "Silent gaze exit ends interaction".
+Footnote exact: "Paper framework: gaze activates the agent. Portable core: detected-object dwell, YOLO, local knowledge and an anchor interface."
+This distinction is essential: the original paper's four-second gaze is on the virtual character; the independently implemented portable code uses detected-object dwell. YOLO is a portable adaptation, NOT a claim about the 2019 paper's original detector. Therefore keep YOLO out of the main original-paper Object recognition box and mention it only in that footnote.
+No performance numbers or claims, no cloud-vs-device topology invented. Module boundaries support local or service adapters, so use generic modular grouping without asserting all services are local.
+Make the figure aesthetically outstanding yet publication-appropriate: sophisticated visual hierarchy, balanced horizontal composition, large labels, precise diagrammatic flow. Render all quoted text accurately.

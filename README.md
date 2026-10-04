@@ -8,9 +8,9 @@
 
 > A modular virtual guide combines speech, gaze, and spatial context in wearable MR.
 
-![Method diagram from Figure 3 of the wearable-mr-agent paper](paper-assets/method.png)
+![Wearable MR Agent architecture: camera, gaze and speech inputs, object-grounded dialogue, coordinated agent behavior, spatial anchors and engagement loop](paper-assets/wearable-system.png)
 
-*Original method figure from the paper: Figure 3, PDF page 2. Extracted for this research introduction; the diagram describes the original system, not verification of this reimplementation.*
+*New scientific system diagram generated with image generation, based on the paper's modular architecture and interaction design. The paper activates speech through gaze at the agent; the portable implementation uses detected-object dwell, YOLO, local knowledge and an anchor interface.*
 
 ## Why this research
 
