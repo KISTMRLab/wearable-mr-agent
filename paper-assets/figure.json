@@ -1,0 +1,9 @@
+{
+  "file": "method.png",
+  "kind": "original-paper-figure",
+  "source_pdf": "wearable-mr-agent.pdf",
+  "page": 2,
+  "figure": 3,
+  "alt": "Method diagram from Figure 3 of the wearable-mr-agent paper",
+  "caption": "Original method figure from the paper: Figure 3, PDF page 2. Extracted for this research introduction; the diagram describes the original system, not verification of this reimplementation."
+}

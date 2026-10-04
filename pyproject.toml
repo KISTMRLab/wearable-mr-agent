@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wearable-mr-agent"
+version = "0.1.0"
+description = "Public research reimplementation of a multimodal wearable-MR guide"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.26,<3", "opencv-python>=4.9,<5"]
+
+[project.optional-dependencies]
+yolo = ["ultralytics>=8.3,<9"]
+dev = ["pytest>=8,<9"]
+
+[project.scripts]
+wearable-mr-agent = "wearable_mr.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

@@ -1,0 +1,17 @@
+title: "Wearable MR agent"
+description: "A modular virtual guide combines speech, gaze, and spatial context in wearable MR."
+markdown: kramdown
+kramdown:
+  input: GFM
+exclude:
+  - src
+  - tests
+  - .venv
+  - data
+  - runs
+  - outputs
+  - checkpoints
+  - pyproject.toml
+  - requirements.txt
+  - package.json
+  - package-lock.json
