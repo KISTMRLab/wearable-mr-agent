@@ -10,7 +10,7 @@
 
 ![Wearable MR Agent architecture: camera, gaze and speech inputs, object-grounded dialogue, coordinated agent behavior, spatial anchors and engagement loop](paper-assets/wearable-system.png)
 
-*New scientific system diagram generated with image generation, based on the paper's modular architecture and interaction design. The paper activates speech through gaze at the agent; the portable implementation uses detected-object dwell, YOLO, local knowledge and an anchor interface.*
+*Graphical abstract diagram. Camera, gaze and speech inputs support object-grounded conversation and coordinated virtual-agent behavior.*
 
 ## Why this research
 
