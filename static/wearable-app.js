@@ -2,9 +2,9 @@
 // or screen-centre ray); the Python server owns the interaction state machine,
 // recognition, chatbot + sentiment engine, anchors and the animation builder.
 import * as THREE from '/static/vendor/three.module.js';
-import {createStage} from '/static/avatar.js?v=20261005-beat2';
-import {Speech} from '/static/speech.js?v=20261005-beat2';
-import {MotionSequence} from '/static/gesture-library.js?v=20261005-beat2';
+import {createStage} from '/static/avatar.js?v=20261006-paper1';
+import {Speech} from '/static/speech.js?v=20261006-paper1';
+import {MotionSequence} from '/static/gesture-library.js?v=20261006-paper1';
 import {setupVoiceInput} from '/static/voice-input.js';
 
 const $ = selector => document.querySelector(selector);
