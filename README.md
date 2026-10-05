@@ -40,7 +40,7 @@ Paper reports responses within 2–4 seconds in its tests
 
 ## Explore the implementation
 
-Modern YOLO image/camera input, gaze dwell, object-grounded responses and behavior events. Device spatial anchors are an integration interface; this is a portable core rather than the original HoloLens application.
+Gaze-and-speech interaction with the character as the gaze target, proactive greeting, voice commands that trigger recognition of the gazed object, a pluggable chatbot with a four-class, three-level sentiment engine, an editable phrase/word animation table over public BEAT clips, thinking/filler latency hiding, and recognition-driven room anchors. The web demo replaces the HoloLens; persistent device anchors are not reproduced there.
 
 This repository contains independently written research code. The institute's original source, datasets and trained models are not distributed. Public-data preparation, commands, assumptions and checks are documented below and in [REQUIREMENTS.md](REQUIREMENTS.md).
 
@@ -67,11 +67,11 @@ python -m pip install -r scripts/requirements-demo.txt
 python scripts/start_demo.py
 ```
 
-Open **http://127.0.0.1:8080/**. Click **Run sample interaction** to simulate object focus and see the answer and behavior events. The launcher prepares pinned Three.js modules and downloads one small official BEAT BVH/TextGrid sample on first run. It builds a nine-clip local bank and fits the exact phrase rules over the three prepared seed clips under ignored `outputs/beat-library/`; later runs reuse the cache. The first run needs internet access. Original recordings, large datasets, institute assets, and pretrained gesture weights are not distributed.
+Open **http://127.0.0.1:8080/**. Click **Run sample interaction** to watch a scripted visit: dwell on the guide, proactive greeting, "what is this" on a flower, a follow-up, an anchored flower and general chat. The launcher prepares pinned Three.js modules and downloads one small official BEAT BVH/TextGrid sample on first run. It builds a nine-clip local bank under ignored `outputs/beat-library/`; the guide's phrase/word animation table (`demo/animation-table.json`) selects clips from it. Later runs reuse the cache. The first run needs internet access. Original recordings, large datasets, institute assets, and pretrained gesture weights are not distributed.
 
 The 3D presentation uses shared Three.js avatar components and bundled fictional CC0 characters. The paper-specific algorithms and data adapters live in this repository.
 
-The application uses `wearable` retrieval for recorded co-speech motion: the paper's early exact-rule co-speech component. The object-focus, dwell, knowledge-answer, and anchor code remain this application's core. The BEAT preparation and retrieval dependencies are vendored in this repository, so no sibling repository checkout is needed. See `scripts/prepare_beat_demo.py` to rebuild the ignored local bank.
+Recorded co-speech motion comes from this repository's animation builder: the paper's expert-authored text-to-animation table, the earliest exact-rule method in the gesture lineage. Interaction, chatbot, sentiment, anchors and animation building are this application's core. The BEAT preparation and retrieval dependencies are vendored in this repository, so no sibling repository checkout is needed. See `scripts/prepare_beat_demo.py` to rebuild the ignored local bank.
 
 <!-- demo-preview:end -->
 
@@ -81,100 +81,98 @@ The application uses `wearable` retrieval for recorded co-speech motion: the pap
 
 This standalone repository reimplements the core loop from **“Design of Seamless Multi-modal Interaction Framework for Intelligent Virtual Agents in Wearable Mixed Reality Environment”** by Ghazanfar Ali, Hong-Quan Le, Junho Kim, Seung-Won Hwang, and Jae-In Hwang, CASA 2019, pp. 47–52. DOI: [10.1145/3328756.3328758](https://doi.org/10.1145/3328756.3328758).
 
-The original implementation and its assets are held by the institute. This is a new educational implementation built from the paper. It includes real object detection, gaze selection, the four-second dwell state machine, grounded object conversation, coordinated behavior events, and a portable anchor abstraction. It does not include the original Unity project, HoloLens application, flower dataset, knowledge base, cloud services, characters, animations, or trained weights, and it does not reproduce the paper's latency measurements.
+The original implementation and its assets are held by the institute. This is a new implementation built from the paper. The original ran on HoloLens with Unity, Azure Custom Vision and a cloud chatbot; here the same modules run as a Python core behind a local web demo, and hosted services are pluggable clients with offline fallbacks. The repository does not include the original Unity project, flower images, knowledge base, characters, animations or trained weights, and it does not reproduce the paper's latency measurements.
 
-### Immediate browser demo
+### Paper components and where they live
 
-```powershell
-py -3.11 -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -e .
-python scripts/prepare_viewer.py
-python -m wearable_mr.demo
-```
+| Paper (CASA 2019) | Code |
+|---|---|
+| Gaze on the character for 4 s starts the speech recogniser (2.1.1, Fig. 5) | `interaction.py` `InteractionStateMachine` (dwell configurable, default 4 s) |
+| Silence after the dwell: the character opens with "Hello, do you need help?" | `proactive_greeting` event after `greeting_after_seconds` (default 3 s), once per conversation |
+| Gaze out while the recogniser runs **and** the user is silent ends the conversation | `conversation_ended`; looking away while talking keeps it. `lookaway_grace_seconds` (default 1.5 s, `0` for the strict rule) gives time to look at an object before a command |
+| Limited voice commands ("What is this", "Tell me about this") trigger recognition of the gazed object | `commands.py` `VoiceCommands` (word-boundary match, configurable list); commands also open a conversation from idle |
+| Vision manager: any recogniser reachable as an endpoint (2.1.2) | `recognition.py`: `DetectorRecognizer` (YOLO, box under the gaze point), `HttpRecognizer` (`--vision-endpoint`), `SimulatedRecognizer` (web-demo rooms) |
+| Chatbot `(Query, Object) → (Reply, Sentiment class, Sentiment level)`; follow-ups without re-gazing; general conversation in any order (2.1.3, Fig. 6) | `chatbot.py` `Chatbot` with conversation history; clients `OpenAICompatibleChatbot` (`--chat-endpoint`), `CommandChatbot` (`--chat-command`), offline `DomainKnowledge` (`knowledge.py`) |
+| Sentiment engine: Joy / Angry / Sad / Fear × High / Medium / Low (Fig. 7) | `sentiment.py`: `HttpSentimentClassifier` (`--sentiment-endpoint`), `OpenAICompatibleSentimentClassifier` (`--sentiment-llm-endpoint`), offline `LexiconSentimentClassifier`; mapped to the renderer as `setExpression('happiness'|'anger'|'sadness'|'fear', 1–3)` for the whole utterance |
+| Expert-authored phrase/word → animation table and animation builder (2.2, Fig. 8) | `animation.py` `AnimationTable` + `AnimationBuilder`; editable `demo/animation-table.json`. Phrases longest first, then words in unclaimed text, ordered by position and timed against the reply |
+| Speech, body animation and face applied in parallel; lip sync from text phonemes (Fig. 9–10) | Web demo: speech progress drives the timed animation list; the shared renderer derives visemes from the reply text |
+| Thinking animation and "let me see…" while recognition and the chatbot are pending (Section 4) | `AgentRuntime.submit` returns at once with a `THINKING` cue (animation + filler); the job runs in the background. The filler plays immediately when recognition runs, otherwise after `filler_delay_seconds` |
+| Anchor placement with recognised objects; recognition selects room-specific anchors; anchored objects skip recognition (2.3, Fig. 11, Table 1 Query A vs C) | `anchors.py` `AnchorManager` (`place`, `observe_recognition`, `resolve`); a label shared by identical rooms waits for more evidence |
+| Several characters with their own voices; two rooms (5 + 4 flowers) | `demo/scenario.json`: Mira in room 1, Rowan in room 2, per-character voice, pitch and rate |
 
-Open `http://127.0.0.1:8761`. The first interaction uses an authored procedural object; image detection needs the optional YOLO setup below.
+### Quick start
 
-### Detailed setup and checks
+Python 3.10 or newer. From this folder:
 
-Python 3.10 or newer is required. From this folder:
-
-```powershell
-py -3.11 -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -e ".[yolo,dev]"
+```sh
+python -m pip install -e ".[dev]"
+python -m pip install -r scripts/requirements-demo.txt
+python scripts/start_demo.py          # prepares Three.js and the small BEAT bank, then serves http://127.0.0.1:8080/
 pytest -q
+python scripts/verify.py
 ```
 
-Ultralytics downloads a named public checkpoint on first use. To avoid downloads, pass a local checkpoint. No model is bundled here.
+`python -m wearable_mr.demo` serves the same page on port 8761 without preparing anything. Without the BEAT bank the animation table falls back to its procedural gestures.
 
-### Procedural verification
+### Using the web demo
 
-Run `python scripts/verify.py` after installation. It feeds a contract-valid procedural detection through the real gaze selector and four-second dwell state machine, then resolves a curator-authored object query into speech, expression, gesture, and viseme events. Inspect `outputs/verify/response.json` and the annotated frame. For real use, replace the procedural `Detection` list with `YoloDetector.detect(frame)` output and replace the inline knowledge mapping with `DomainKnowledge.load("knowledge.json")`; the downstream interaction contract stays the same.
+- **Gaze.** *Mouse ray* casts a ray from the pointer; *Screen centre* casts it through the crosshair, and dragging or the arrow keys turn the head. The guide is the gaze target: rest the ray on the guide for the dwell time and the state changes to *listening*. With the mouse ray, the gaze stays where it was while you type or click outside the scene; point at empty space in the scene to look away.
+- **Speech.** *Microphone* uses the browser's speech recognition (Chrome/Edge) continuously, and its voice activity tells the server whether you are speaking. The text field is the typed fallback: typing counts as speaking. *Record (local Whisper)* transcribes into the field when `WHISPER_MODEL_DIR` is set.
+- **Voice commands.** Look at a flower and say or type "what is this" or "tell me about this". The gaze target at the start of the utterance is sent with it. Follow-ups such as "how do I care for it?" use the remembered object. General questions ("who are you?") work at any time.
+- **Rooms and anchors.** The room selector simulates walking between two rooms. The first recognised flower in a room loads that room's anchors (*Query A*); later commands on anchored flowers skip recognition. *Reset visit* unloads them.
+- **Webcam.** Choose *Webcam frame → YOLO* and start the webcam (or pick an image). A voice command then sends the current frame to the server, which recognises the object under the frame centre. Start the server with `--weights yolo11n.pt` (or your trained checkpoint, after `pip install -e ".[yolo]"`); without weights the guide says that no detector is configured and the simulated rooms keep working.
+- **Voices.** Each guide has a preferred browser voice, pitch and rate in `demo/scenario.json`. The optional local Kokoro backend uses one voice for all characters.
 
-If the optional `yolo` dependency is installed, `python scripts/verify.py --with-yolo` additionally initializes YOLO11n from its bundled architecture configuration with random weights and sends the synthetic frame through `YoloDetector`. This checks the adapter and dependency boundary without downloading pretrained weights; random detections have no semantic meaning.
+### Plugging in services
 
-### Knowledge contract
+The demo, `chat` and `camera` commands accept the same options:
 
-Create `knowledge.json` with curator-written, verified content:
-
-```json
-{
-  "objects": {
-    "detector class name": {
-      "overview": "A curator-authored description.",
-      "topics": {"care": "A curator-authored answer about care."},
-      "emotion": "joy"
-    }
-  }
-}
+```sh
+# OpenAI-compatible chatbot (hosted, vLLM, llama.cpp server, Ollama /v1, ...); the key is read from --api-key-env
+python -m wearable_mr.demo --chat-endpoint http://127.0.0.1:8000/v1 --chat-model my-model --api-key-env OPENAI_API_KEY
+# Local program: JSON {query, object, history} on stdin, reply text or {"reply": ...} on stdout
+python -m wearable_mr.demo --chat-command "python my_bot.py"
+# Sentiment service: POST {text} -> {class, level} or {label, score}; or an OpenAI-compatible model
+python -m wearable_mr.demo --sentiment-endpoint http://127.0.0.1:9000/sentiment
+python -m wearable_mr.demo --sentiment-llm-endpoint http://127.0.0.1:8000/v1 --sentiment-model my-model
+# Remote vision API for camera frames: POST {image: base64 JPEG} -> {label, confidence}
+python -m wearable_mr.demo --vision-endpoint http://127.0.0.1:9100/recognize
 ```
 
-Keys must match YOLO class names. Topic keys are simple query triggers. The responder never fills missing facts from a language model.
+The language-model chatbot is grounded with the curated facts for the recognised object. When a configured client fails, the offline knowledge chatbot or lexicon classifier answers and the reply records the error. Nothing is downloaded automatically.
 
-### Detect, train, and interact
+### Command line
 
-Run public YOLO weights on an image:
-
-```powershell
-wearable-mr-agent image .\frame.jpg --weights yolo11n.pt
+```sh
+wearable-mr-agent chat --say "@rose what is this"           # '@label' simulates looking at an object
+wearable-mr-agent chat                                       # interactive text conversation
+wearable-mr-agent animate "Hello, do you need help? I think you can look at this rose."
+wearable-mr-agent sentiment "Careful, the thorns are sharp."
+wearable-mr-agent image frame.jpg --weights yolo11n.pt
+wearable-mr-agent camera --weights yolo11n.pt               # centre crosshair = gaze; press A and type an utterance
 ```
 
-Run the camera loop. The screen center is the portable gaze proxy; dwell continuously on one detected instance for four seconds and press `A` to type an utterance:
+### Authoring the domain
 
-```powershell
-wearable-mr-agent camera --weights yolo11n.pt --knowledge .\knowledge.json --camera 0
-```
+- **Knowledge** (`demo/knowledge.json`, `--knowledge`). Keys are recogniser labels. Each object has an `overview` and `topics`; a topic is text or `{"text", "keywords"}`. Matching uses whole words and plural/possessive forms, never substrings. An optional `general` list adds `{intent, patterns, reply}` entries to the built-in greetings, identity, help, yes/no, thanks and farewell intents.
+- **Animation table** (`demo/animation-table.json`, `--animation-table`). `phrases` (two or more words) and `words` map to `{"clip": <BEAT clip id>, "procedural": <open|point|wave|think|beat|nod>}`. A clip id missing from the prepared bank resolves by ordinal (`beat_04` is the fourth clip); otherwise the procedural gesture plays. `min_gap_words` spaces single-word triggers. The bundled table has about 50 entries chosen from the BEAT clip transcripts.
+- **Scenario** (`demo/scenario.json`, `--scenario`). Agent timings, voice commands, greeting and fillers; characters and voices; rooms with prop ids, labels and positions. Each prop is also a pre-placed anchor. `--anchors anchors.json` persists anchors to a file.
+- **Detector.** For your own objects, prepare an Ultralytics dataset (`images/train`, `images/val`, YOLO labels, `dataset.yaml`), run `yolo detect train model=yolo11n.yaml data=dataset.yaml epochs=100 imgsz=640`, and pass the resulting `best.pt` with `--weights`. Keep knowledge keys equal to the detector's class names.
 
-For a new domain, prepare a standard Ultralytics detection dataset (`images/train`, `images/val`, matching YOLO text labels, and `dataset.yaml`) and train from architecture configuration:
+### Checks
 
-```powershell
-yolo detect train model=yolo11n.yaml data=.\dataset.yaml epochs=100 imgsz=640
-wearable-mr-agent camera --weights .\runs\detect\train\weights\best.pt --knowledge .\knowledge.json
-```
+`pytest -q` covers the state-machine timing (dwell, greeting, look-away while speaking, strict rule, timeouts), voice commands, follow-ups and general chat, the chatbot and sentiment clients against stub servers and a local command, sentiment-to-expression mapping, builder ordering (including the old "this" before "I" bug), longest-phrase-first matching, clip resolution, anchor-based recognition skipping, the asynchronous thinking state, and the demo HTTP routes. `python scripts/verify.py` drives a full offline visit and writes the transcript to `outputs/verify/response.json`; `--with-yolo` also runs the YOLO adapter on randomly initialised weights, without downloads.
 
-The first command initializes a detector from scratch; using `model=yolo11n.pt` instead fine-tunes pretrained weights. See the official [Ultralytics training guide](https://docs.ultralytics.com/modes/train/) and [dataset format guide](https://docs.ultralytics.com/datasets/detect/).
+### Not reproduced in the web demo
 
-### Architecture and adapters
-
-- `YoloDetector` owns inference only.
-- `select_detection` resolves a pointer/gaze point to the tightest containing box.
-- `InteractionStateMachine` implements idle → dwell → listen → think → respond and resets incomplete dwell on gaze loss.
-- `DomainKnowledge` accepts `(query, object)` and emits speech, expression, gesture, and viseme-channel events.
-- `AnchorProvider` separates application logic from device spatial APIs. `JsonAnchorProvider` only proves room-scoped save/load semantics; an OpenXR/ARCore adapter must supply real transforms and room localization.
-
-This scope is intentional: it preserves the paper's modular contribution while avoiding a false claim that JSON transforms recreate native HoloLens spatial anchors or that a desktop camera is a wearable MR system.
-
-### Local browser interaction
-
-After setup, run `python scripts/prepare_viewer.py` once to fetch a pinned Three.js module into ignored `static/vendor/`. Then run `python -m wearable_mr.demo` and open `http://127.0.0.1:8761`. The procedural box is an authored interaction example. For actual image or webcam inference, install `.[yolo]` and start with `python -m wearable_mr.demo --weights yolo11n.pt`; public weights may download on first use. The browser shows YOLO boxes, pointer-selected target, four-second continuous dwell, a knowledge-grounded answer, and synchronized speech/expression/gesture events. Edit `demo/knowledge.json` to match your model classes. Browser speech uses the local browser speech engine. No YOLO model or original avatar is bundled; fictional CC0 avatars and the locally prepared BEAT gesture bank support presentation.
-
-Run `python scripts/verify.py` and `pytest -q` for the procedural contract and state tests. The generated outputs are under ignored `outputs/verify/`. This integration is an independently authored portable example, not the institute's Unity/HoloLens runtime.
+- **Persistent spatial anchors.** World-locked anchors need a device runtime (HoloLens, or WebXR Anchors in Android/Quest browsers). The desktop demo simulates rooms and pre-placed anchors; `AnchorProvider` is the interface for a device adapter.
+- **WebXR head gaze.** The demo uses the mouse or screen-centre ray; it does not open an immersive WebXR session.
+- **Mixed-reality rendering of real objects.** Flowers are procedural props, and their labels come from the room description (`SimulatedRecognizer`). Real recognition runs on webcam or image frames with your YOLO weights.
+- **The paper's chatbot, sentiment and vision services, flower dataset and timings.** These are replaced by pluggable clients and offline fallbacks; the measured 2–8 s response times are not reproduced.
 
 ### Optional local speech
 
-Browser speech is selected by default. To enable the **Local Kokoro** selector and audio transcription, install `python -m pip install -e ".[speech]"`. Prepare model files yourself outside this repository: set `KOKORO_MODEL_DIR` to a folder containing `config.json`, `kokoro-v1_0.pth`, and `voices/af_heart.pt` from [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M). Follow the [Kokoro phonemizer setup](https://github.com/hexgrad/kokoro), including espeak-ng where needed. Set `WHISPER_MODEL_DIR` to a locally prepared faster-whisper small model directory containing `model.bin`. For example, in PowerShell, `$env:KOKORO_MODEL_DIR='C:\path\to\kokoro'` and `$env:WHISPER_MODEL_DIR='C:\path\to\whisper-small'` before launching the demo. The server checks those paths and returns actionable errors when absent; it does not download weights. Record or upload audio to fill the question field, then ask after dwell reaches listening.
+Browser speech is selected by default. To enable the **Local Kokoro** selector and audio transcription, install `python -m pip install -e ".[speech]"`. Prepare model files yourself outside this repository: set `KOKORO_MODEL_DIR` to a folder containing `config.json`, `kokoro-v1_0.pth`, and `voices/af_heart.pt` from [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M). Follow the [Kokoro phonemizer setup](https://github.com/hexgrad/kokoro), including espeak-ng where needed. Set `WHISPER_MODEL_DIR` to a locally prepared faster-whisper small model directory containing `model.bin`. For example, in PowerShell, `$env:KOKORO_MODEL_DIR='C:\path\to\kokoro'` and `$env:WHISPER_MODEL_DIR='C:\path\to\whisper-small'` before launching the demo. The server checks those paths and returns actionable errors when absent; it does not download weights.
 
 <!-- avatar-recorded-motion:start -->
 ## Bundled characters and recorded public motion

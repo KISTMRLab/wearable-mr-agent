@@ -1,0 +1,45 @@
+{
+  "description": "Desktop web-demo stand-in for the paper's botanical-garden scenario: two simulated rooms (five and four flowers), a girl guide in room 1 and a boy guide in room 2, each with its own voice. Props are procedural shapes; their labels feed the simulated recogniser and the pre-placed anchors.",
+  "agent": {
+    "dwell_seconds": 4.0,
+    "greeting_after_seconds": 3.0,
+    "lookaway_grace_seconds": 1.5,
+    "commands_start_conversation": true,
+    "voice_commands": ["what is this", "what's this", "tell me about this", "what is that", "what's that", "tell me about that", "what am i looking at"],
+    "greeting": "Hello, do you need help?",
+    "fillers": ["Let me see.", "Let me think about it.", "Hmm, let me have a look."],
+    "filler_delay_seconds": 1.0
+  },
+  "simulated_recognition_seconds": 1.5,
+  "characters": {
+    "mira": {"label": "Girl guide (Mira)", "voice": {"lang": "en-US", "prefer": ["Jenny", "Aria", "Zira", "Samantha", "Google US English", "female"], "pitch": 1.15, "rate": 1.0}},
+    "rowan": {"label": "Boy guide (Rowan)", "voice": {"lang": "en-GB", "prefer": ["Ryan", "Guy", "David", "Daniel", "Google UK English Male", "male"], "pitch": 0.85, "rate": 0.97}}
+  },
+  "rooms": [
+    {
+      "id": "room-1",
+      "name": "Room 1",
+      "character": "mira",
+      "floor": "#1d3a2c",
+      "props": [
+        {"id": "r1-rose", "label": "rose", "position": [-2.0, 0, 0.1], "shape": "cup", "color": "#d7263d", "center": "#7a0f1c", "height": 0.95},
+        {"id": "r1-tulip", "label": "tulip", "position": [-1.3, 0, -0.9], "shape": "cup", "color": "#ff7f3f", "center": "#ffd166", "height": 1.0},
+        {"id": "r1-sunflower", "label": "sunflower", "position": [1.3, 0, -0.9], "shape": "disc", "color": "#ffd23f", "center": "#5b3a1a", "height": 1.35},
+        {"id": "r1-orchid", "label": "orchid", "position": [2.0, 0, 0.1], "shape": "star", "color": "#d65db1", "center": "#fff3b0", "height": 0.9},
+        {"id": "r1-lily", "label": "lily", "position": [-0.95, 0, 0.95], "shape": "star", "color": "#f7f7ff", "center": "#ffb347", "height": 0.8}
+      ]
+    },
+    {
+      "id": "room-2",
+      "name": "Room 2",
+      "character": "rowan",
+      "floor": "#2c2a3d",
+      "props": [
+        {"id": "r2-daisy", "label": "daisy", "position": [-1.9, 0, 0.0], "shape": "disc", "color": "#ffffff", "center": "#ffcf33", "height": 0.85},
+        {"id": "r2-lavender", "label": "lavender", "position": [-1.2, 0, -1.0], "shape": "spike", "color": "#8e6cc8", "center": "#5d3f99", "height": 1.0},
+        {"id": "r2-lotus", "label": "lotus", "position": [1.2, 0, -1.0], "shape": "cup", "color": "#ff9ecb", "center": "#ffe066", "height": 0.7},
+        {"id": "r2-hibiscus", "label": "hibiscus", "position": [1.9, 0, 0.0], "shape": "star", "color": "#ff4b3e", "center": "#ffd700", "height": 1.05}
+      ]
+    }
+  ]
+}

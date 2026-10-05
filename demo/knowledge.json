@@ -1,7 +1,89 @@
 {
+  "description": "Authored starter knowledge for the botanical-garden scenario (nine flowers in two simulated rooms) plus a few COCO classes for webcam recognition. Curator-written general facts; replace with your own domain knowledge. Topic keys and keywords are matched as whole words.",
   "objects": {
-    "person": {"overview": "A person is in view. This example has no personal facts.", "topics": {"privacy": "Only the current frame is processed locally by this demo."}, "emotion": "neutral"},
-    "chair": {"overview": "A chair supports a seated person.", "topics": {"use": "A chair provides a seat."}, "emotion": "joy"},
-    "flower": {"overview": "This is a procedural flower label for the interaction example, not an image detection.", "topics": {"care": "Care depends on the flower species; this example does not identify one."}, "emotion": "joy"}
-  }
+    "rose": {
+      "name": "rose",
+      "overview": "This is a rose. Roses have been grown in gardens for thousands of years, and there are many hundreds of cultivated varieties.",
+      "topics": {
+        "care": {"text": "Roses enjoy at least six hours of sun, well-drained soil and deep watering at the base rather than on the leaves.", "keywords": ["water", "watering", "sunlight", "grow", "soil"]},
+        "meaning": {"text": "Red roses are a classic symbol of love, while yellow roses usually stand for friendship and joy.", "keywords": ["symbol", "symbolize", "mean", "colour", "color"]},
+        "thorns": {"text": "Careful: the sharp prickles on rose stems can scratch, so hold the stem gently.", "keywords": ["prickles", "sharp", "touch", "hurt"]}
+      }
+    },
+    "tulip": {
+      "name": "tulip",
+      "overview": "This is a tulip. Tulips grow from bulbs and bloom in spring with bright cup-shaped flowers.",
+      "topics": {
+        "care": {"text": "Plant tulip bulbs in autumn, about three times as deep as the bulb is tall, in a sunny and well-drained spot.", "keywords": ["water", "plant", "grow", "bulb", "bulbs"]},
+        "history": {"text": "In the seventeenth century tulips became so fashionable in the Netherlands that single bulbs sold for very high prices.", "keywords": ["origin", "come", "netherlands", "tulip mania"]},
+        "season": {"text": "Tulips bloom in spring, usually between March and May.", "keywords": ["bloom", "flower", "when"]}
+      }
+    },
+    "sunflower": {
+      "name": "sunflower",
+      "overview": "This is a sunflower. Its large flower head is made of hundreds of tiny florets, and it can grow taller than a person.",
+      "topics": {
+        "care": {"text": "Sunflowers love full sun and warm weather; water them deeply but not too often once they are established.", "keywords": ["water", "grow", "sun", "sunlight"]},
+        "seeds": {"text": "A single sunflower head can hold more than a thousand seeds, which birds and people both enjoy.", "keywords": ["seed", "eat", "food"]},
+        "sun": {"text": "Young sunflower buds turn to follow the sun across the sky; most mature flowers settle facing east.", "keywords": ["turn", "face", "follow"]}
+      }
+    },
+    "orchid": {
+      "name": "orchid",
+      "overview": "This is an orchid. Orchids form one of the largest flowering-plant families, with tens of thousands of species.",
+      "topics": {
+        "care": {"text": "Most household orchids like bright indirect light and should be watered when their bark mix is almost dry.", "keywords": ["water", "light", "grow"]},
+        "roots": {"text": "Many orchids grow on trees in the wild, and their silvery roots take moisture from the air.", "keywords": ["root", "air", "tree"]}
+      }
+    },
+    "lily": {
+      "name": "lily",
+      "overview": "This is a lily. Lilies grow from bulbs and have large trumpet-shaped flowers that are often fragrant.",
+      "topics": {
+        "care": {"text": "Lilies like their flowers in the sun and their roots in cool, shaded, well-drained soil.", "keywords": ["water", "grow", "soil"]},
+        "pets": {"text": "Warning: lilies are toxic to cats, even in small amounts, so keep them away from pets.", "keywords": ["cat", "cats", "pet", "toxic", "poisonous", "safe"]}
+      }
+    },
+    "daisy": {
+      "name": "daisy",
+      "overview": "This is a daisy. What looks like one flower is really a cluster of tiny flowers: yellow ones in the centre and white petals around them.",
+      "topics": {
+        "care": {"text": "Daisies are easy to grow in sunny spots and only need watering when the soil is dry.", "keywords": ["water", "grow"]},
+        "name": {"text": "The name daisy comes from the old English phrase for day's eye, because the flower opens in the morning and closes at night.", "keywords": ["called", "word", "origin"]}
+      }
+    },
+    "lavender": {
+      "name": "lavender",
+      "overview": "This is lavender, a fragrant shrub with purple flower spikes from the Mediterranean region.",
+      "topics": {
+        "care": {"text": "Lavender prefers full sun, poor well-drained soil and little water once it is established.", "keywords": ["water", "grow", "soil"]},
+        "scent": {"text": "Lavender's calming scent is used in soaps, perfumes and sachets, and bees love its flowers.", "keywords": ["smell", "fragrance", "bees", "use"]}
+      }
+    },
+    "lotus": {
+      "name": "lotus",
+      "overview": "This is a lotus, an aquatic plant whose flowers rise above the water on long stems.",
+      "topics": {
+        "leaves": {"text": "Lotus leaves repel water so well that droplets roll off and carry dirt away, which is called the lotus effect.", "keywords": ["leaf", "water", "clean"]},
+        "meaning": {"text": "In many Asian cultures the lotus is a symbol of purity, because it blooms clean from muddy water.", "keywords": ["symbol", "mean", "culture"]}
+      }
+    },
+    "hibiscus": {
+      "name": "hibiscus",
+      "overview": "This is a hibiscus, a tropical flower with large, colourful blossoms and a long central stamen.",
+      "topics": {
+        "care": {"text": "Hibiscus likes warmth, plenty of light and regular watering; bring it indoors before frost.", "keywords": ["water", "grow", "cold", "winter"]},
+        "tea": {"text": "The dried calyces of one hibiscus species make a tart, ruby-red tea.", "keywords": ["drink", "use", "flavour", "flavor"]}
+      }
+    },
+    "potted plant": {
+      "name": "potted plant",
+      "overview": "That looks like a potted plant. Detectors trained on everyday objects recognise plants in pots but not their species.",
+      "topics": {"care": {"text": "Most potted plants need drainage holes and should not stand in water.", "keywords": ["water", "grow"]}}
+    },
+    "vase": {"name": "vase", "overview": "That is a vase. Cut flowers last longer if you trim their stems and change the water every two days.", "topics": {}},
+    "person": {"name": "person", "overview": "I can see a person. This demo does not identify people or keep their images.", "topics": {"privacy": "Camera frames are processed by your local demo server only for the current question."}},
+    "chair": {"name": "chair", "overview": "That is a chair. Feel free to rest while we talk.", "topics": {}}
+  },
+  "general": []
 }
