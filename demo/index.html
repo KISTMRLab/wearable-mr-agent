@@ -77,7 +77,7 @@ small,.note{color:var(--muted)}.note{font-size:13px}
   document.getElementById('init-retry').onclick = () => location.reload();
   document.getElementById('run-example').addEventListener('click', () => {
     if (window.wearableDemo?.ready) return;
-    const message = box.hidden ? 'The demo is still loading; try again in a moment.' : 'The demo is not ready: ' + text.textContent;
+    const message = box.hidden ? 'The demo is not ready yet (still loading); try again in a moment.' : text.textContent;
     document.getElementById('speech-status').textContent = message;
     const item = document.createElement('li'); item.className = 'sys'; item.textContent = message;
     document.getElementById('log').prepend(item);
