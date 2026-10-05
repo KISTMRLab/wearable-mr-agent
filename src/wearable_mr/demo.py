@@ -8,6 +8,7 @@ import time
 from dataclasses import asdict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from .avatar_http import serve_avatar_asset
 
 import cv2
 import numpy as np
@@ -25,6 +26,7 @@ def app(knowledge: DomainKnowledge, detector=None):
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
+            if serve_avatar_asset(self, Path(__file__).resolve().parents[2] / "static"): return
             if self.path == "/api/speech":
                 body = json.dumps(speech.status()).encode()
                 self.send_response(200)

@@ -24,3 +24,6 @@ This repository reproduces the paper's central modular interaction loop rather t
 - Unit tests cover exact dwell transitions, gaze loss, bounding-box selection, contextual follow-ups, behavior events, and room-scoped anchors.
 - The CLI can perform image inference and a camera interaction loop when optional YOLO weights and a camera are available.
 
+## Bundled fictional avatar substitution
+
+Two newly generated fictional CC0 humanoids replace the original avatar assets in the browser demo. They provide a 53-bone rig and named ARKit/viseme targets. Motion retargeting adapts source joints to their bind pose; speaking envelopes approximate mouth motion rather than phoneme alignment. The optional recorded BEAT companion inspects public motion, face and audio files prepared locally, independently of the paper's learned algorithm. No dataset recordings or trained weights are bundled.
