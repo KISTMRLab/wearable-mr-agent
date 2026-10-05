@@ -76,6 +76,18 @@ def test_demo_routes_drive_dwell_command_thinking_and_reply(server):
     assert post(server, "/api/sentiment", {"text": "Beware, it is poisonous!"})["class"] == "Fear"
 
 
+def test_page_reports_start_up_failures_with_retry_and_sample_button_reports_not_ready(server):
+    # Regression (V2 D4): a failed first request left a half-initialised page and a silent sample button.
+    page = urlopen(server + "/").read().decode("utf-8")
+    assert 'id="init-error"' in page and 'id="init-retry"' in page and "location.reload()" in page
+    guard, module = page.index("window.wearableInitFailed ="), page.index('type="module"')
+    assert guard < module  # classic guard runs even when the module graph fails to load
+    assert "onerror=\"window.wearableInitFailed(" in page and "not ready" in page
+    script = urlopen(server + "/static/wearable-app.js").read().decode("utf-8")
+    assert "loadScenario" in script and "window.wearableInitFailed?.(" in script
+    assert "ready: true" in script
+
+
 def test_webcam_routes_fail_gracefully_without_weights(server):
     detect = post(server, "/api/detect", {"image": "data:image/png;base64,AAAA"})
     assert detect["status"] == 400 and "--weights" in detect["error"]

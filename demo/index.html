@@ -22,10 +22,12 @@ dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:.5em 0}dt{col
 #cam-wrap{position:relative;width:240px;max-width:100%;aspect-ratio:4/3;background:#0b1417;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 #webcam,#webcam-overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 small,.note{color:var(--muted)}.note{font-size:13px}
+#init-error{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#4a2a12;border:1px solid var(--warn);color:#ffe7c2;border-radius:10px;padding:10px 14px;margin:10px 0}#init-error[hidden]{display:none}
 </style>
 <main>
 <h1>Wearable MR guide: web stand-in</h1>
 <p>Gaze at the guide for the dwell time (four seconds) to start listening. If you stay silent, the guide greets you. Look at a flower and say <em>“what is this”</em> to recognise it, then ask follow-ups while looking at the guide. If you look away and stay silent, the conversation ends. With the mouse ray, the gaze stays where it was while you type or click outside the scene; point at empty space in the scene to look away.</p>
+<div id="init-error" role="alert" hidden><span id="init-error-text"></span><button id="init-retry" type="button">Retry</button></div>
 <div class="grid">
 <section>
   <div id="agent"><div id="crosshair"></div><div id="dwell"><span id="gaze-label">Gaze: nothing</span><div id="dwell-bar"><div id="dwell-fill"></div></div></div></div>
@@ -61,5 +63,33 @@ small,.note{color:var(--muted)}.note{font-size:13px}
 </aside>
 </div>
 </main>
-<script type="module" src="/static/wearable-app.js"></script>
+<script>
+// Start-up guard (classic script, runs even when a module fails to load): a failed module or scenario request
+// shows a visible error with Retry instead of a half-initialised page, and the sample button reports it.
+(() => {
+  const box = document.getElementById('init-error'), text = document.getElementById('init-error-text');
+  window.wearableInitFailed = message => {
+    if (window.wearableDemo?.ready || !box.hidden) return;  // keep the first, most specific message
+    text.textContent = `The demo did not finish loading: ${message}. Check that the demo server is running, then retry.`;
+    box.hidden = false;
+    for (const id of ['chatbot', 'library']) document.getElementById(id).textContent = 'unavailable';
+  };
+  document.getElementById('init-retry').onclick = () => location.reload();
+  document.getElementById('run-example').addEventListener('click', () => {
+    if (window.wearableDemo?.ready) return;
+    const message = box.hidden ? 'The demo is still loading; try again in a moment.' : 'The demo is not ready: ' + text.textContent;
+    document.getElementById('speech-status').textContent = message;
+    const item = document.createElement('li'); item.className = 'sys'; item.textContent = message;
+    document.getElementById('log').prepend(item);
+  });
+  window.addEventListener('error', event => {
+    if (/wearable-app|avatar|speech|gesture-library|voice-input|three/.test(event.filename || '')) window.wearableInitFailed(event.message || 'script error');
+  });
+  window.addEventListener('unhandledrejection', event => {
+    if (!window.wearableDemo?.ready) window.wearableInitFailed(event.reason?.message || String(event.reason));
+  });
+  setTimeout(() => {if (!window.wearableDemo?.ready) window.wearableInitFailed('start-up did not complete within 20 s');}, 20000);
+})();
+</script>
+<script type="module" src="/static/wearable-app.js" onerror="window.wearableInitFailed('a page script could not be loaded (network error)')"></script>
 </html>

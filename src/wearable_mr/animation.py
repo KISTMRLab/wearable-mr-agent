@@ -8,7 +8,8 @@ the text that no phrase claimed. Entries are ordered by their position in the
 reply, so "I think this" plays the "I"/"I think" animation before "this".
 
 Animations are either recorded clips from the locally prepared public BEAT bank
-(``outputs/beat-library/bank.json``, referenced by clip id) or procedural
+(``outputs/beat-library/bank.json``, referenced by stable BEAT window id such as
+``1_wayne_0_1_1:780-855``, or by bank clip id) or procedural
 gestures understood by the shared renderer (``stage.gesture(name)``).
 """
 from __future__ import annotations
@@ -116,6 +117,15 @@ class ClipLibrary:
         self.bank = bank
         self.clips = {str(c["id"]): c for c in clips if "id" in c and c.get("positions")}
         self.order = [str(c["id"]) for c in clips if str(c.get("id")) in self.clips]
+        # Stable BEAT window ids ("<take>:<start>-<end>" at 30 fps) survive bank rebuilds; ordinals do not.
+        self.windows: dict[str, str] = {}
+        for cid in self.order:
+            source = self.clips[cid].get("source") or {}
+            window = source.get("window_id")
+            if not window and source.get("take") and "start_frame" in source and "end_frame" in source:
+                window = f"{source['take']}:{int(source['start_frame'])}-{int(source['end_frame'])}"
+            if window:
+                self.windows.setdefault(str(window), cid)
 
     @classmethod
     def load(cls, path: str | Path) -> "ClipLibrary | None":
@@ -125,11 +135,17 @@ class ClipLibrary:
         return cls(json.loads(path.read_text(encoding="utf-8")))
 
     def resolve(self, clip_id: str | None) -> str | None:
-        """Exact id; otherwise an ordinal id ``beat_NN`` selects the NN-th clip of the bank."""
+        """Exact bank id or BEAT window id (``1_wayne_0_1_1:780-855``); otherwise an ordinal id ``beat_NN``
+        selects the NN-th clip of the bank. A window id missing from this bank resolves to None, so the
+        table's procedural gesture plays instead of an unrelated clip."""
         if not clip_id:
             return None
         if clip_id in self.clips:
             return clip_id
+        if clip_id in self.windows:
+            return self.windows[clip_id]
+        if ":" in clip_id:
+            return None
         stem, _, number = clip_id.rpartition("_")
         if stem and number.isdigit() and 0 < int(number) <= len(self.order):
             return self.order[int(number) - 1]

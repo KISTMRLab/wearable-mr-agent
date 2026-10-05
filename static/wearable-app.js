@@ -31,7 +31,21 @@ async function getJSON(route) {
   return value;
 }
 
-const config = await getJSON('/api/scenario');
+// A transient network error (e.g. a Windows socket buffer error) on the first request is retried; a lasting
+// failure is shown by the start-up guard in index.html with a Retry button.
+async function loadScenario(attempts = 3) {
+  for (let attempt = 1; ; attempt++) {
+    try {return await getJSON('/api/scenario');} catch (error) {
+      if (attempt >= attempts) throw new Error(`could not load /api/scenario (${error.message})`);
+      await sleep(500 * attempt);
+    }
+  }
+}
+let config;
+try {config = await loadScenario();} catch (error) {
+  window.wearableInitFailed?.(error.message);
+  throw error;
+}
 const agent = config.agent;
 $('#chatbot').textContent = config.chatbot;
 $('#library').textContent = config.library_ready ? 'BEAT clips prepared + procedural gestures' : 'procedural stand-ins (prepare the BEAT bank for recorded clips)';
@@ -553,6 +567,7 @@ $('#run-example').onclick = async () => {
 };
 
 window.addEventListener('pagehide', () => {stopRecording(); speech.cancel(); recognizer?.stop(); stream?.getTracks().forEach(t => t.stop()); stage.dispose();});
-window.wearableDemo = {config, stage, get state() {return state;}, get gaze() {return gaze;}, utter, setRoom, setScriptedGaze: value => {scripted = value;}};
+window.wearableDemo = {ready: true, config, stage, get state() {return state;}, get gaze() {return gaze;}, utter, setRoom, setScriptedGaze: value => {scripted = value;}};
+$('#init-error').hidden = true;
 log(`Ready. ${config.rooms.length} simulated rooms; dwell ${agent.dwell_seconds}s; voice commands: ${agent.voice_commands.slice(0, 3).join(', ')}…`);
 poll();

@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -55,6 +56,45 @@ def test_clip_ids_resolve_against_the_prepared_bank_with_ordinal_and_procedural_
     assert list(plan["motion"]["clips"]) == ["take:150-225"] and plan["motion"]["fps"] == 30
 
 
+def windowed_bank():
+    """Shared bank shape: ordinal ids, stable window ids in source (or only take/start/end in older banks)."""
+    data = bank(["beat_01", "beat_02", "beat_03"])
+    data["clips"][0]["source"] = {"take": "1_wayne_0_1_1", "window_id": "1_wayne_0_1_1:1830-1905",
+                                  "start_frame": 1830, "end_frame": 1905}
+    data["clips"][1]["source"] = {"take": "1_wayne_0_1_1", "window_id": "1_wayne_0_1_1:1005-1080",
+                                  "start_frame": 1005, "end_frame": 1080}
+    data["clips"][2]["source"] = {"take": "1_wayne_0_1_1", "start_frame": 780, "end_frame": 855}
+    return data
+
+
+def test_window_ids_resolve_regardless_of_bank_order_and_missing_windows_fall_back_to_procedural():
+    library = ClipLibrary(windowed_bank())
+    assert library.resolve("1_wayne_0_1_1:1830-1905") == "beat_01"
+    assert library.resolve("1_wayne_0_1_1:780-855") == "beat_03"  # derived from take/start/end
+    assert library.resolve("1_wayne_0_1_1:480-555") is None  # never an unrelated ordinal clip
+    assert library.resolve("beat_02") == "beat_02"
+    shifted = windowed_bank()
+    shifted["clips"].reverse()
+    for k, clip in enumerate(shifted["clips"]):
+        clip["id"] = f"beat_{k + 1:02d}"
+    assert ClipLibrary(shifted).resolve("1_wayne_0_1_1:1830-1905") == "beat_03"  # same window after a rebuild
+    words = {"i": {"clip": "1_wayne_0_1_1:1005-1080", "procedural": "beat"},
+             "you": {"clip": "1_wayne_0_1_1:480-555", "procedural": "open"}}
+    entries = AnimationBuilder(AnimationTable.from_dict({"words": words, "min_gap_words": 0}), library).build("I see you")
+    assert [(e.trigger, e.kind, e.clip_id, e.gesture) for e in entries] == [
+        ("i", "clip", "beat_02", "beat"), ("you", "procedural", None, "open")]
+
+
+def test_bundled_table_uses_stable_window_ids_with_procedural_fallbacks():
+    payload = json.loads((ROOT / "demo" / "animation-table.json").read_text(encoding="utf-8"))
+    specs = list(payload["phrases"].values()) + list(payload["words"].values())
+    clips = [spec for spec in specs if isinstance(spec, dict) and spec.get("clip")]
+    assert clips and all(re.fullmatch(r"\d+_[a-z]+_\d+_\d+_\d+:\d+-\d+", spec["clip"]) for spec in clips)
+    assert all(spec.get("procedural") for spec in clips)
+    for spec in clips:  # the description quotes each referenced window
+        assert spec["clip"].split(":")[1] in payload["description"]
+
+
 def test_table_validation_and_the_bundled_table_loads():
     with pytest.raises(ValueError):
         AnimationTable.from_dict({"phrases": {"single": "wave"}})
@@ -74,5 +114,17 @@ def test_prepared_bank_if_present_resolves_the_bundled_table():
         pytest.skip("BEAT bank not prepared")
     library = ClipLibrary.load(path)
     bundled = AnimationTable.load(ROOT / "demo" / "animation-table.json")
-    assert all(library.resolve(cid) for cid in bundled.clip_ids)
-    assert json.loads(json.dumps(AnimationBuilder(bundled, library).plan("I think we can walk.")))["motion"]["clips"]
+    # Both default banks (public multi-take and processed BEAT) hold these reviewed windows of the named take;
+    # each transcript contains the trigger it serves.
+    core = {"1_wayne_0_1_1:1830-1905": "i think", "1_wayne_0_1_1:1080-1155": "i can", "1_wayne_0_1_1:780-855": "walk",
+            "1_wayne_0_1_1:1230-1305": "how much", "1_wayne_0_1_1:1005-1080": "friends",
+            "1_wayne_0_1_1:1905-1980": "anime", "1_wayne_0_1_1:1680-1755": "movies", "1_wayne_0_1_1:1755-1830": "sleep"}
+    for window, phrase in core.items():
+        if window.split(":")[0] not in {(c.get("source") or {}).get("take") for c in library.clips.values()}:
+            pytest.skip("prepared bank does not use the default named take")
+        assert window in bundled.clip_ids
+        assert phrase in library.clips[library.resolve(window)]["text"]
+    plan = json.loads(json.dumps(AnimationBuilder(bundled, library).plan("I think we can walk.")))
+    assert plan["motion"]["clips"]
+    assert all(plan["motion"]["clips"][e["clip_id"]]["source"]["start_frame"] == 1830
+               for e in plan["entries"] if e["trigger"] == "i think")
