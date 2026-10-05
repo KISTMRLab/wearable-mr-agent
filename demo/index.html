@@ -35,10 +35,10 @@ document.querySelector('#run-example').onclick=async()=>{
 };
 document.querySelector('#example').click();
 </script><script type="module">
-import {createStage} from '/static/avatar.js';
-import {Speech} from '/static/speech.js';
+import {createStage} from '/static/avatar.js?v=20261005-gesture7';
+import {Speech} from '/static/speech.js?v=20261005-gesture7';
 import {setupVoiceInput} from '/static/voice-input.js';
-const stage=createStage(document.querySelector('#agent'));
+const stage=createStage(document.querySelector('#agent'));stage.camera.position.set(0,1.5,3.6);stage.camera.lookAt(0,1,0);
 const speech=new Speech(stage);
 const status=document.querySelector('#speech-status');
 const stopRecording=setupVoiceInput(speech,document.querySelector('#question'),document.querySelector('#record'),document.querySelector('#audio-file'),status);
