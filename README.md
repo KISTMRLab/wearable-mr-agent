@@ -63,12 +63,15 @@ From the repository root, using the Python environment described below:
 
 ```sh
 python -m pip install -e .
+python -m pip install -r scripts/requirements-demo.txt
 python scripts/start_demo.py
 ```
 
-Open **http://127.0.0.1:8080/**. Click **Run sample interaction** to simulate object focus and see the answer and behavior events. The launcher selects the bundled inputs automatically; it also builds the small authored index for RAG demos. Avatar demos prepare their pinned Three.js modules on first launch, so that step needs internet access. Model weights and public datasets are optional for the starter workflow and are prepared separately for real-data use.
+Open **http://127.0.0.1:8080/**. Click **Run sample interaction** to simulate object focus and see the answer and behavior events. The launcher prepares pinned Three.js modules and downloads one small official BEAT BVH/TextGrid sample on first run. It builds a nine-clip local bank and fits the exact phrase rules over the three prepared seed clips under ignored `outputs/beat-library/`; later runs reuse the cache. The first run needs internet access. Original recordings, large datasets, institute assets, and pretrained gesture weights are not distributed.
 
 The 3D presentation uses shared Three.js avatar components and bundled fictional CC0 characters. The paper-specific algorithms and data adapters live in this repository.
+
+The application uses `wearable` retrieval for recorded co-speech motion: the paper's early exact-rule co-speech component. The object-focus, dwell, knowledge-answer, and anchor code remain this application's core. The BEAT preparation and retrieval dependencies are vendored in this repository, so no sibling repository checkout is needed. See `scripts/prepare_beat_demo.py` to rebuild the ignored local bank.
 
 <!-- demo-preview:end -->
 
@@ -165,7 +168,7 @@ This scope is intentional: it preserves the paper's modular contribution while a
 
 ### Local browser interaction
 
-After setup, run `python scripts/prepare_viewer.py` once to fetch a pinned Three.js module into ignored `static/vendor/`. Then run `python -m wearable_mr.demo` and open `http://127.0.0.1:8761`. The procedural box is an authored interaction example. For actual image or webcam inference, install `.[yolo]` and start with `python -m wearable_mr.demo --weights yolo11n.pt`; public weights may download on first use. The browser shows YOLO boxes, pointer-selected target, four-second continuous dwell, a knowledge-grounded answer, and synchronized speech/expression/gesture events. Edit `demo/knowledge.json` to match your model classes. Browser speech uses the local browser speech engine. No model or original avatar is bundled.
+After setup, run `python scripts/prepare_viewer.py` once to fetch a pinned Three.js module into ignored `static/vendor/`. Then run `python -m wearable_mr.demo` and open `http://127.0.0.1:8761`. The procedural box is an authored interaction example. For actual image or webcam inference, install `.[yolo]` and start with `python -m wearable_mr.demo --weights yolo11n.pt`; public weights may download on first use. The browser shows YOLO boxes, pointer-selected target, four-second continuous dwell, a knowledge-grounded answer, and synchronized speech/expression/gesture events. Edit `demo/knowledge.json` to match your model classes. Browser speech uses the local browser speech engine. No YOLO model or original avatar is bundled; fictional CC0 avatars and the locally prepared BEAT gesture bank support presentation.
 
 Run `python scripts/verify.py` and `pytest -q` for the procedural contract and state tests. The generated outputs are under ignored `outputs/verify/`. This integration is an independently authored portable example, not the institute's Unity/HoloLens runtime.
 

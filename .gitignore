@@ -11,3 +11,5 @@ anchors.json
 build/
 dist/
 static/vendor/
+
+data/

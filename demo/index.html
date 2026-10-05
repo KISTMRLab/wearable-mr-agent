@@ -35,20 +35,25 @@ document.querySelector('#run-example').onclick=async()=>{
 };
 document.querySelector('#example').click();
 </script><script type="module">
-import {createStage} from '/static/avatar.js?v=20261005-gesture7';
-import {Speech} from '/static/speech.js?v=20261005-gesture7';
+import {createStage} from '/static/avatar.js?v=20261005-beat2';
+import {Speech} from '/static/speech.js?v=20261005-beat2';
 import {setupVoiceInput} from '/static/voice-input.js';
+import {prepareApplicationMotion,gestureSummary} from '/static/application-gesture.js?v=20261005-beat2';
 const stage=createStage(document.querySelector('#agent'));stage.camera.position.set(0,1.5,3.6);stage.camera.lookAt(0,1,0);
 const speech=new Speech(stage);
 const status=document.querySelector('#speech-status');
 const stopRecording=setupVoiceInput(speech,document.querySelector('#question'),document.querySelector('#record'),document.querySelector('#audio-file'),status);
 fetch('/api/speech').then(r=>r.json()).then(v=>{if(!v.asr)status.textContent='Local transcription requires WHISPER_MODEL_DIR; typed questions work now.'});
-window.addEventListener('agent-reply',e=>{
-  for(const event of e.detail.events){
-    if(event.channel==='gesture')stage.gesture(event.value);
-    if(event.channel==='expression')stage.expression(event.value,event.intensity);
-  }
-  speech.speak(e.detail.text,{backend:document.querySelector('#speech-backend').value}).catch(error=>status.textContent=error.message);
+window.addEventListener('agent-reply',async e=>{
+  const reply=e.detail;let selected=null;
+  try{selected=await prepareApplicationMotion(stage,reply.text,{mode:'wearable'});}
+  catch(error){status.textContent=`Recorded co-speech unavailable: ${error.message}`;}
+  speech.speak(reply.text,{backend:document.querySelector('#speech-backend').value,
+    onStart:()=>{for(const event of reply.events)if(event.channel==='expression')stage.expression(event.value,event.intensity);
+      if(selected){selected.motion.onStart();log.textContent+=`\nCo-speech: ${gestureSummary(selected.data)}`;}},
+    onProgress:clock=>selected?.motion.onProgress(clock),
+    onEnd:()=>{selected?.motion.onEnd();stage.clearMotion();stage.gesture('idle');}
+  }).catch(error=>{status.textContent=`${error.message}. Playing motion without speech.`;selected?.motion.playSilent();});
 });
 window.addEventListener('pagehide',()=>{stopRecording();speech.cancel();stage.dispose()});
 </script></html>

@@ -4,11 +4,15 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import sys
 import time
 from dataclasses import asdict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 from .avatar_http import serve_avatar_asset
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+from beat_runtime import serve_beat
 
 import cv2
 import numpy as np
@@ -26,6 +30,7 @@ def app(knowledge: DomainKnowledge, detector=None):
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
+            if serve_beat(self, Path(__file__).resolve().parents[2], "wearable"): return
             if serve_avatar_asset(self, Path(__file__).resolve().parents[2] / "static"): return
             if self.path == "/api/speech":
                 body = json.dumps(speech.status()).encode()
@@ -35,8 +40,9 @@ def app(knowledge: DomainKnowledge, detector=None):
                 self.end_headers()
                 self.wfile.write(body)
                 return
-            if self.path in {"/static/avatar.js", "/static/speech.js", "/static/voice-input.js", "/static/vendor/three.module.js"}:
-                body = (Path(__file__).resolve().parents[2] / self.path.lstrip("/")).read_bytes()
+            asset_path = urlsplit(self.path).path
+            if asset_path in {"/static/avatar.js", "/static/speech.js", "/static/voice-input.js", "/static/application-gesture.js", "/static/gesture-library.js", "/static/vendor/three.module.js"}:
+                body = (Path(__file__).resolve().parents[2] / asset_path.lstrip("/")).read_bytes()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/javascript")
                 self.send_header("Content-Length", str(len(body)))
@@ -54,6 +60,7 @@ def app(knowledge: DomainKnowledge, detector=None):
             self.wfile.write(page)
 
         def do_POST(self):
+            if serve_beat(self, Path(__file__).resolve().parents[2], "wearable"): return
             if speech_route(self, speech):
                 return
             try:
